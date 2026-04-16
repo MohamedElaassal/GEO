@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useGeo } from '@/app/context/GeoContext';
-import { CATEGORY_EMOJIS, CATEGORY_LABELS, Category } from '@/lib/constants';
+import { CATEGORY_LABELS, Category } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -77,14 +77,13 @@ export default function MapPopup({ poiId, onClose }: MapPopupProps) {
   };
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-lg shadow-lg p-4 max-w-sm z-[1200]">
+    <div className="absolute top-4 left-1/2 z-50 w-[92%] max-w-sm -translate-x-1/2 rounded-md border border-border bg-card p-4 shadow-lg">
       <div className="flex items-start gap-3">
-        <span className="text-3xl">{CATEGORY_EMOJIS[category]}</span>
         <div className="flex-1">
           {!isEditing ? (
             <>
               <h3 className="font-bold text-foreground text-lg">{poi.name}</h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
                 {CATEGORY_LABELS[poi.category]}
               </p>
               {poi.description && (
@@ -117,7 +116,7 @@ export default function MapPopup({ poiId, onClose }: MapPopupProps) {
                     variant={category === cat ? 'default' : 'outline'}
                     onClick={() => setCategory(cat)}
                   >
-                    {CATEGORY_EMOJIS[cat]} {CATEGORY_LABELS[cat]}
+                    {CATEGORY_LABELS[cat]}
                   </Button>
                 ))}
               </div>

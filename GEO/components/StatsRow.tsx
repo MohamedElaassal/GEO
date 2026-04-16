@@ -14,10 +14,10 @@ export default function StatsRow() {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard title="Total de points" value={totalPoints} icon="📍" />
-      <StatCard title="Restaurants" value={restaurants} icon="🍽️" />
-      <StatCard title="Hôtels" value={hotels} icon="🏨" />
-      <StatCard title="Sites" value={sites} icon="🏛️" />
+      <StatCard title="Total de points" value={totalPoints} />
+      <StatCard title={CATEGORY_LABELS.restaurant} value={restaurants} />
+      <StatCard title={CATEGORY_LABELS.hotel} value={hotels} />
+      <StatCard title={CATEGORY_LABELS.site} value={sites} />
     </div>
   );
 }

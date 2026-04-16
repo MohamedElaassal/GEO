@@ -40,7 +40,7 @@ export default function CategoryChart() {
   ];
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="rounded-md border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground mb-4">
         Points par catégorie
       </h2>

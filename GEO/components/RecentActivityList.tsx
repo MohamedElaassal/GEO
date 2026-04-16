@@ -1,7 +1,7 @@
 'use client';
 
 import { useGeo } from '@/app/context/GeoContext';
-import { CATEGORY_EMOJIS, CATEGORY_LABELS } from '@/lib/constants';
+import { CATEGORY_LABELS } from '@/lib/constants';
 
 export default function RecentActivityList() {
   const { pois } = useGeo();
@@ -20,7 +20,7 @@ export default function RecentActivityList() {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="rounded-md border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground mb-4">
         Activité récente
       </h2>
@@ -34,17 +34,19 @@ export default function RecentActivityList() {
           {recentPois.map((poi) => (
             <div
               key={poi.id}
-              className="flex items-start gap-3 pb-3 border-b border-border last:border-b-0"
+              className="flex items-start justify-between gap-3 rounded-md border border-border/70 px-3 py-2"
             >
-              <span className="text-2xl">{CATEGORY_EMOJIS[poi.category]}</span>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground truncate">
                   {poi.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {CATEGORY_LABELS[poi.category]} • {formatDate(poi.createdAt)}
+                  {formatDate(poi.createdAt)}
                 </p>
               </div>
+              <span className="rounded-sm border border-border bg-muted px-2 py-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                {CATEGORY_LABELS[poi.category]}
+              </span>
             </div>
           ))}
         </div>

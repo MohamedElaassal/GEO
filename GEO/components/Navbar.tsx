@@ -9,27 +9,32 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="bg-primary text-primary-foreground border-b border-border">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
-        <div className="text-xl font-bold">GeoApp</div>
+    <nav className="sticky top-0 z-40 border-b border-border/70 bg-card/95 backdrop-blur">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            Geospatial Console
+          </p>
+          <p className="text-base font-semibold text-foreground">GEO Intelligence</p>
+        </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 p-1">
           <Link
             href="/"
-            className={`pb-2 transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               isActive('/')
-                ? 'border-b-2 border-accent'
-                : 'hover:text-accent'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
             Carte
           </Link>
           <Link
             href="/dashboard"
-            className={`pb-2 transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               isActive('/dashboard')
-                ? 'border-b-2 border-accent'
-                : 'hover:text-accent'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
             Tableau de bord

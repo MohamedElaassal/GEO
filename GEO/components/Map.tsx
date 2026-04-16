@@ -1,111 +1,78 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { GoogleMap, InfoWindowF, MarkerF, useJsApiLoader } from '@react-google-maps/api';
 import { useGeo } from '@/app/context/GeoContext';
 import {
   CATEGORY_COLORS,
-  CATEGORY_EMOJIS,
   CATEGORY_LABELS,
   DEFAULT_CENTER,
   DEFAULT_ZOOM,
 } from '@/lib/constants';
 import { getCurrentPosition } from '@/lib/geo';
 import MapPopup from './MapPopup';
-import type * as L from 'leaflet';
 
-let leafletModule: typeof import('leaflet');
-
-const initLeaflet = async () => {
-  if (!leafletModule) {
-    leafletModule = await import('leaflet');
-    await import('leaflet/dist/leaflet.css');
-  }
-  return leafletModule;
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
 };
 
+const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API ?? '';
+
 export default function Map() {
-  const mapRef = useRef<L.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const markersRef = useRef<Record<string, L.CircleMarker>>({});
-  const userMarkerRef = useRef<L.CircleMarker | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
   const { pois, selectedPoiId, selectPoi, userLocation, setUserLocation } =
     useGeo();
   const [isLocating, setIsLocating] = useState(false);
 
-  // Initialize map
-  useEffect(() => {
-    if (mapRef.current || !mapContainerRef.current) return;
-    let isMounted = true;
+  const selectedPoi = useMemo(
+    () => pois.find((poi) => poi.id === selectedPoiId) ?? null,
+    [pois, selectedPoiId]
+  );
 
-    const setupMap = async () => {
-      const L = await initLeaflet();
-      const container = mapContainerRef.current;
-      if (!container || !isMounted) return;
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey,
+  });
 
-      // Prevent Leaflet double-init during hot reloads.
-      if ((container as HTMLDivElement & { _leaflet_id?: number })._leaflet_id) {
-        return;
-      }
+  const mapCenter = useMemo(
+    () => ({
+      lat: userLocation?.latitude ?? DEFAULT_CENTER[0],
+      lng: userLocation?.longitude ?? DEFAULT_CENTER[1],
+    }),
+    [userLocation]
+  );
 
-      const map = L.map(container, {
-        center: DEFAULT_CENTER,
-        zoom: DEFAULT_ZOOM,
-        zoomControl: true,
-      });
-
-      L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-      }).addTo(map);
-
-      if (isMounted) {
-        mapRef.current = map;
-      } else {
-        map.remove();
-      }
-    };
-
-    setupMap();
-
-    return () => {
-      isMounted = false;
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, []);
+  const buildMarkerIcon = (color: string, selected: boolean): google.maps.Symbol => ({
+    path: window.google.maps.SymbolPath.CIRCLE,
+    fillColor: color,
+    fillOpacity: 0.95,
+    strokeColor: '#ffffff',
+    strokeWeight: 2,
+    scale: selected ? 9 : 7,
+  });
 
   // Fonction manuelle pour obtenir la position
   const handleManualLocate = async () => {
     setIsLocating(true);
     try {
-      console.log('📍 Demande de géolocalisation...');
+      console.log('Demande de geolocalisation...');
       const coords = await getCurrentPosition();
-      console.log('✅ Position trouvée:', coords);
+      console.log('Position trouvee:', coords);
       
       setUserLocation({
         latitude: coords.latitude,
         longitude: coords.longitude,
       });
-      
+
       if (mapRef.current) {
-        mapRef.current.setView(
-          [coords.latitude, coords.longitude],
-          15 // Zoom plus proche pour la position utilisateur
-        );
-        
-        // Optionnel: Ajouter un popup temporaire
-        const L = await initLeaflet();
-        L.popup()
-          .setLatLng([coords.latitude, coords.longitude])
-          .setContent('📍 Vous êtes ici')
-          .openOn(mapRef.current);
+        mapRef.current.panTo({ lat: coords.latitude, lng: coords.longitude });
+        mapRef.current.setZoom(15);
       }
     } catch (error) {
-      console.error('❌ Erreur de géolocalisation:', error);
+      console.error('Erreur de geolocalisation:', error);
       let errorMessage = "Impossible d'obtenir votre position";
-      
+
       if (error instanceof Error) {
         if (error.message.includes('denied')) {
           errorMessage = "Vous avez refusé l'accès à votre position. Veuillez autoriser dans les paramètres du navigateur.";
@@ -122,114 +89,103 @@ export default function Map() {
     }
   };
 
-  // NE PAS auto-fetch au chargement - laisser l'utilisateur cliquer sur le bouton
-  // Cela évite les erreurs de permission et donne le contrôle à l'utilisateur
-
-  // Add user location marker
   useEffect(() => {
-    if (!mapRef.current || !userLocation) return;
+    if (!mapRef.current || !selectedPoi) return;
+    mapRef.current.panTo({ lat: selectedPoi.latitude, lng: selectedPoi.longitude });
+    mapRef.current.setZoom(DEFAULT_ZOOM);
+  }, [selectedPoi]);
 
-    const setupUserMarker = async () => {
-      const L = await initLeaflet();
-      
-      // Remove old marker if exists
-      if (userMarkerRef.current) {
-        userMarkerRef.current.remove();
-      }
-      
-      if (mapRef.current) {
-        userMarkerRef.current = L.circleMarker(
-          [userLocation.latitude, userLocation.longitude],
-          {
-            radius: 10,
-            fillColor: '#2e86c1',
-            color: '#ffffff',
-            weight: 3,
-            opacity: 1,
-            fillOpacity: 0.8,
-          }
-        ).addTo(mapRef.current);
-        
-        // Ajouter une popup au survol/clic
-        userMarkerRef.current.bindPopup('📍 Votre position');
-      }
-    };
+  if (!googleMapsApiKey) {
+    return (
+      <div className="relative w-full h-screen">
+        <div className="flex h-full items-center justify-center bg-muted px-4 text-center text-sm text-muted-foreground">
+          La cle API Google Maps est absente. Ajoutez NEXT_PUBLIC_GOOGLE_MAPS_API dans .env puis redemarrez le serveur.
+        </div>
+      </div>
+    );
+  }
 
-    setupUserMarker();
-  }, [userLocation]);
-
-  // Update POI markers
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    const setupMarkers = async () => {
-      const L = await initLeaflet();
-
-      // Remove old markers
-      Object.values(markersRef.current).forEach((marker) => {
-        if (marker) marker.remove();
-      });
-      markersRef.current = {};
-
-      if (!mapRef.current) return;
-
-      // Add new markers
-      pois.forEach((poi) => {
-        const color = CATEGORY_COLORS[poi.category];
-        const marker = L.circleMarker([poi.latitude, poi.longitude], {
-          radius: selectedPoiId === poi.id ? 12 : 10,
-          fillColor: color,
-          color: '#ffffff',
-          weight: 3,
-          opacity: 1,
-          fillOpacity: 0.95,
-        })
-          .on('click', () => selectPoi(selectedPoiId === poi.id ? null : poi.id))
-          .bindTooltip(`${CATEGORY_EMOJIS[poi.category]} ${CATEGORY_LABELS[poi.category]} - ${poi.name}`)
-          .addTo(mapRef.current!);
-
-        markersRef.current[poi.id] = marker;
-      });
-    };
-
-    setupMarkers();
-  }, [pois, selectedPoiId, selectPoi]);
-
-  // Handle map centering on selected POI
-  useEffect(() => {
-    if (!mapRef.current || !selectedPoiId) return;
-
-    const selectedPoi = pois.find((p) => p.id === selectedPoiId);
-    if (selectedPoi) {
-      mapRef.current.setView(
-        [selectedPoi.latitude, selectedPoi.longitude],
-        DEFAULT_ZOOM
-      );
-    }
-  }, [selectedPoiId, pois]);
+  if (loadError) {
+    return (
+      <div className="relative w-full h-screen">
+        <div className="flex h-full items-center justify-center bg-muted px-4 text-center text-sm text-destructive">
+          Impossible de charger Google Maps. Verifiez votre cle API et les restrictions de domaine.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-screen">
-      <div ref={mapContainerRef} id="map" className="w-full h-full" />
+      {isLoaded ? (
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={mapCenter}
+          zoom={DEFAULT_ZOOM}
+          onLoad={(map) => {
+            mapRef.current = map;
+          }}
+          onUnmount={() => {
+            mapRef.current = null;
+          }}
+          options={{
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: false,
+          }}
+        >
+          {pois.map((poi) => {
+            const isSelected = selectedPoiId === poi.id;
+            return (
+              <MarkerF
+                key={poi.id}
+                position={{ lat: poi.latitude, lng: poi.longitude }}
+                title={`${CATEGORY_LABELS[poi.category]} - ${poi.name}`}
+                icon={buildMarkerIcon(CATEGORY_COLORS[poi.category], isSelected)}
+                onClick={() => selectPoi(isSelected ? null : poi.id)}
+              />
+            );
+          })}
+
+          {userLocation && (
+            <MarkerF
+              position={{ lat: userLocation.latitude, lng: userLocation.longitude }}
+              title="Votre position"
+              icon={buildMarkerIcon('#2e86c1', true)}
+            />
+          )}
+
+          {selectedPoi && (
+            <InfoWindowF
+              position={{ lat: selectedPoi.latitude, lng: selectedPoi.longitude }}
+              onCloseClick={() => selectPoi(null)}
+            >
+              <div className="text-sm text-black">
+                <p className="font-semibold">{selectedPoi.name}</p>
+                <p className="text-xs">{CATEGORY_LABELS[selectedPoi.category]}</p>
+              </div>
+            </InfoWindowF>
+          )}
+        </GoogleMap>
+      ) : (
+        <div className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground">
+          Chargement de Google Maps...
+        </div>
+      )}
       
       {/* Bouton flottant pour la géolocalisation */}
       <button
         onClick={handleManualLocate}
         disabled={isLocating}
-        className="absolute bottom-20 right-4 z-[1000] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg flex items-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute bottom-20 right-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-4 rounded-md shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         style={{
           boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
         }}
       >
-        <span className="text-xl">
-          {isLocating ? '⏳' : '📍'}
-        </span>
-        <span className="hidden sm:inline">
-          {isLocating ? 'Localisation...' : 'Ma position'}
-        </span>
+        {isLocating ? 'Localisation...' : 'Ma position'}
       </button>
 
-      <div className="absolute top-4 right-4 z-[1000] rounded-lg bg-card/90 border border-border p-3 shadow-md">
+      <div className="absolute top-4 right-4 z-50 rounded-md bg-card/95 border border-border p-3 shadow-md">
         <p className="text-xs font-semibold mb-2 text-foreground">Categories</p>
         <div className="space-y-1">
           {(['restaurant', 'hotel', 'site', 'leisure'] as const).map((category) => (
@@ -238,7 +194,6 @@ export default function Map() {
                 className="inline-block h-3 w-3 rounded-full border border-white"
                 style={{ backgroundColor: CATEGORY_COLORS[category] }}
               />
-              <span>{CATEGORY_EMOJIS[category]}</span>
               <span className="text-foreground">{CATEGORY_LABELS[category]}</span>
             </div>
           ))}

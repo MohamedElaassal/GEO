@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useGeo } from '@/app/context/GeoContext';
-import { CATEGORY_LABELS, CATEGORY_EMOJIS, Category, DEFAULT_CENTER } from '@/lib/constants';
+import { CATEGORY_COLORS, CATEGORY_LABELS, Category, DEFAULT_CENTER } from '@/lib/constants';
 import { getCurrentPosition } from '@/lib/geo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,14 +26,12 @@ export default function AddPointModal({ onClose }: AddPointModalProps) {
   const handleLocate = async () => {
     setIsLocating(true);
     try {
-      console.log('[v0] Requesting geolocation...');
       const position = await getCurrentPosition();
-      console.log('[v0] Position received:', position);
       setLatitude(position.latitude.toString());
       setLongitude(position.longitude.toString());
     } catch (error) {
-      console.error('[v0] Failed to get position:', error);
-      alert(`Unable to get current location: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to get position:', error);
+      alert(`Impossible d'obtenir la position actuelle: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     } finally {
       setIsLocating(false);
     }
@@ -71,13 +69,16 @@ export default function AddPointModal({ onClose }: AddPointModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-      <div className="bg-card rounded-lg shadow-2xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-foreground mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-2xl">
+        <h2 className="text-2xl font-bold text-foreground">
           Ajouter un point
         </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Renseignez les informations pour creer un nouveau lieu.
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Nom
@@ -92,7 +93,7 @@ export default function AddPointModal({ onClose }: AddPointModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
+            <label className="mb-2 block text-sm font-medium text-foreground">
               Catégorie
             </label>
             <div className="flex flex-wrap gap-2">
@@ -101,13 +102,13 @@ export default function AddPointModal({ onClose }: AddPointModalProps) {
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`px-3 py-2 rounded-lg transition-colors ${
+                  className={`rounded-md px-3 py-2 text-sm transition-colors ${
                     category === cat
-                      ? 'bg-accent text-accent-foreground'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-foreground hover:bg-secondary'
                   }`}
                 >
-                  {CATEGORY_EMOJIS[cat]} {CATEGORY_LABELS[cat]}
+                  {CATEGORY_LABELS[cat]}
                 </button>
               ))}
             </div>
@@ -118,9 +119,9 @@ export default function AddPointModal({ onClose }: AddPointModalProps) {
             onClick={handleLocate}
             disabled={isLocating}
             variant="outline"
-            className="w-full border-accent text-accent hover:bg-accent/10 font-semibold"
+            className="w-full border-primary/35 text-primary hover:bg-primary/10 font-semibold"
           >
-            {isLocating ? '⏳ Localisation en cours...' : '📍 Déterminer ma position actuelle'}
+            {isLocating ? 'Localisation en cours...' : 'Determiner ma position actuelle'}
           </Button>
 
           <div className="grid grid-cols-2 gap-2">
@@ -162,31 +163,34 @@ export default function AddPointModal({ onClose }: AddPointModalProps) {
             />
           </div>
 
-          {/* Preview */}
-          <div className="bg-muted p-3 rounded-lg">
-            <p className="text-xs text-muted-foreground mb-2">Aperçu</p>
-            <div className="flex items-start gap-2">
-              <span className="text-2xl">{CATEGORY_EMOJIS[category]}</span>
-              <div className="flex-1">
+          <div className="rounded-md border border-border bg-muted/50 p-3">
+            <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Apercu</p>
+            <div className="flex items-start gap-3">
+              <span
+                className="mt-1 inline-block h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: CATEGORY_COLORS[category] }}
+              />
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground">{name || 'Nom du point'}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   {CATEGORY_LABELS[category]}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row">
             <Button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-muted text-muted-foreground hover:bg-secondary"
+              variant="outline"
+              className="flex-1"
             >
               Annuler
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Enregistrer
             </Button>

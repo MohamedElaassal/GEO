@@ -17,13 +17,6 @@ export const CATEGORY_COLORS: Record<Category, string> = {
   leisure: '#8b5cf6', // purple
 };
 
-export const CATEGORY_EMOJIS: Record<Category, string> = {
-  restaurant: '🍽️',
-  hotel: '🏨',
-  site: '🏛️',
-  leisure: '🎭',
-};
-
 export const CATEGORY_LABELS: Record<Category, string> = {
   restaurant: 'Restaurant',
   hotel: 'Hôtel',

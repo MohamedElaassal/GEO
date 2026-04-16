@@ -100,9 +100,9 @@ export default function MiniMap() {
   }, [pois]);
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="rounded-md border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground mb-4">Vue générale</h2>
-      <div ref={mapContainerRef} id="mini-map" className="w-full h-64 rounded-lg overflow-hidden border border-border" />
+      <div ref={mapContainerRef} id="mini-map" className="h-64 w-full overflow-hidden rounded-md border border-border" />
     </div>
   );
 }

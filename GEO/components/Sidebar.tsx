@@ -31,24 +31,31 @@ export default function Sidebar() {
   const filteredPois = getFilteredPois();
 
   return (
-    <div className="flex flex-col h-full bg-card">
-      <div className="p-4 border-b border-border">
-        <h1 className="text-2xl font-bold text-primary mb-4">GeoApp</h1>
+    <div className="flex h-full flex-col bg-card">
+      <div className="border-b border-border px-4 py-5">
+        <h1 className="text-lg font-semibold text-foreground">Points d'interet</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Explorez et filtrez les emplacements en temps reel.
+        </p>
 
         <Input
           type="text"
-          placeholder="Rechercher..."
+          placeholder="Rechercher un point"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="mb-4"
+          className="mt-4"
         />
+
+        <p className="mt-4 mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          Filtrer par categorie
+        </p>
 
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveFilters([])}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
               activeFilters.length === 0
-                ? 'bg-accent text-accent-foreground'
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-foreground hover:bg-secondary'
             }`}
           >
@@ -58,9 +65,9 @@ export default function Sidebar() {
             <button
               key={category}
               onClick={() => handleFilterToggle(category)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                 activeFilters.includes(category)
-                  ? 'bg-accent text-accent-foreground'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-foreground hover:bg-secondary'
               }`}
             >
@@ -70,9 +77,9 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 space-y-2 overflow-y-auto p-4">
         {filteredPois.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
             Aucun point trouvé
           </div>
         ) : (
@@ -82,12 +89,12 @@ export default function Sidebar() {
         )}
       </div>
 
-      <div className="p-4 border-t border-border">
+      <div className="border-t border-border p-4">
         <Button
           onClick={() => setIsModalOpen(true)}
-          className="w-full bg-accent hover:bg-accent/90"
+          className="w-full bg-primary hover:bg-primary/90"
         >
-          + Ajouter un point
+          Ajouter un point
         </Button>
       </div>
 

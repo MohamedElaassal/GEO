@@ -34,7 +34,7 @@ export function getCurrentPosition(): Promise<{
   longitude: number;
 }> {
   return new Promise((resolve, reject) => {
-    if (!navigator || !navigator.geolocation) {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
       reject(new Error('Geolocation is not supported by your browser'));
       return;
     }
@@ -47,7 +47,11 @@ export function getCurrentPosition(): Promise<{
         });
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        if (error.code === 1) {
+          console.warn('Geolocation permission denied by user.');
+        } else {
+          console.warn('Geolocation request failed:', error);
+        }
         reject(new Error(`Unable to get location: ${error.message}`));
       },
       {
