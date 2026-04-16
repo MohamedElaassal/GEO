@@ -3,24 +3,19 @@
 FROM node:20-bookworm-slim AS base
 WORKDIR /app
 
-# Use pnpm via corepack and keep store path deterministic for cache mounts.
-ENV PNPM_HOME=/pnpm
-ENV PATH=$PNPM_HOME:$PATH
-RUN corepack enable
-
 FROM base AS deps
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --no-frozen-lockfile
+COPY package.json ./
+RUN npm install
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm prisma generate
-RUN pnpm build
-RUN pnpm prune --prod
+RUN npm run prisma:generate
+RUN npm run build
+RUN npm prune --omit=dev
 
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
@@ -44,4 +39,4 @@ COPY --from=builder /app/prisma ./prisma
 USER node
 EXPOSE 8080
 
-CMD ["sh", "-c", "node node_modules/next/dist/bin/next start -H 0.0.0.0 -p ${PORT:-8080}"]
+CMD ["sh", "-c", "npm run start -- -H 0.0.0.0 -p ${PORT:-8080}"]
