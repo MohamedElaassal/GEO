@@ -4,6 +4,8 @@ node_modules
 .next
 Dockerfile
 .dockerignore
+pnpm-lock.yaml
+pnpm-workspace.yaml
 .env
 .env.*
 *.local
