@@ -6,11 +6,8 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-const databaseUrl = process.env.DATABASE_URL
-
-if (!databaseUrl) {
-  throw new Error('DATABASE_URL is not set')
-}
+// Allow build-time route analysis to proceed even when env vars are not injected yet.
+const databaseUrl = process.env.DATABASE_URL ?? 'file:./dev.db'
 
 const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
 
