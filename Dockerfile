@@ -23,10 +23,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
-# Default SQLite location for Cloud Run volume mounts; can be overridden at deploy time.
 ENV DATABASE_URL=file:/data/dev.db
 
-# Create a writable location for SQLite database files.
 RUN mkdir -p /data && chown -R node:node /data
 
 COPY --from=builder /app/package.json ./package.json

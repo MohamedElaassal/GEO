@@ -17,13 +17,12 @@ const mapContainerStyle = {
   height: '100%',
 };
 
-const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API ?? '';
-
 export default function Map() {
   const mapRef = useRef<google.maps.Map | null>(null);
   const { pois, selectedPoiId, selectPoi, userLocation, setUserLocation } =
     useGeo();
   const [isLocating, setIsLocating] = useState(false);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
 
   const selectedPoi = useMemo(
     () => pois.find((poi) => poi.id === selectedPoiId) ?? null,
@@ -94,6 +93,41 @@ export default function Map() {
     mapRef.current.panTo({ lat: selectedPoi.latitude, lng: selectedPoi.longitude });
     mapRef.current.setZoom(DEFAULT_ZOOM);
   }, [selectedPoi]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadMapsConfig = async () => {
+      try {
+        const response = await fetch('/api/config', { cache: 'no-store' });
+        const data = (await response.json()) as { googleMapsApiKey?: string };
+
+        if (isMounted) {
+          setGoogleMapsApiKey(data.googleMapsApiKey?.trim() || '');
+        }
+      } catch {
+        if (isMounted) {
+          setGoogleMapsApiKey('');
+        }
+      }
+    };
+
+    loadMapsConfig();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (googleMapsApiKey === null) {
+    return (
+      <div className="relative w-full h-screen">
+        <div className="flex h-full items-center justify-center bg-muted px-4 text-center text-sm text-muted-foreground">
+          Chargement de la configuration Google Maps...
+        </div>
+      </div>
+    );
+  }
 
   if (!googleMapsApiKey) {
     return (
