@@ -181,33 +181,35 @@ export default function Map() {
   }, [selectedPoi]);
 
   return (
-    <div className="relative w-full h-screen">
-      <div ref={mapContainerRef} className="h-full w-full" />
+    <div className="relative h-screen w-full overflow-hidden">
+      <div ref={mapContainerRef} className="relative z-0 h-full w-full" />
 
-      {/* Bouton flottant pour la géolocalisation */}
-      <button
-        onClick={handleManualLocate}
-        disabled={isLocating}
-        className="absolute bottom-20 right-4 z-50 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-4 rounded-md shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-        }}
-      >
-        {isLocating ? 'Localisation...' : 'Ma position'}
-      </button>
+      <div className="pointer-events-none absolute inset-0 z-50">
+        {/* Bouton flottant pour la géolocalisation */}
+        <button
+          onClick={handleManualLocate}
+          disabled={isLocating}
+          className="pointer-events-auto absolute bottom-20 right-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-4 rounded-md shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+          }}
+        >
+          {isLocating ? 'Localisation...' : 'Ma position'}
+        </button>
 
-      <div className="absolute top-4 right-4 z-50 rounded-md bg-card/95 border border-border p-3 shadow-md">
-        <p className="text-xs font-semibold mb-2 text-foreground">Categories</p>
-        <div className="space-y-1">
-          {(['restaurant', 'hotel', 'site', 'leisure'] as const).map((category) => (
-            <div key={category} className="flex items-center gap-2 text-xs">
-              <span
-                className="inline-block h-3 w-3 rounded-full border border-white"
-                style={{ backgroundColor: CATEGORY_COLORS[category] }}
-              />
-              <span className="text-foreground">{CATEGORY_LABELS[category]}</span>
-            </div>
-          ))}
+        <div className="pointer-events-auto absolute top-4 right-4 rounded-md bg-card/95 border border-border p-3 shadow-md">
+          <p className="text-xs font-semibold mb-2 text-foreground">Categories</p>
+          <div className="space-y-1">
+            {(['restaurant', 'hotel', 'site', 'leisure'] as const).map((category) => (
+              <div key={category} className="flex items-center gap-2 text-xs">
+                <span
+                  className="inline-block h-3 w-3 rounded-full border border-white"
+                  style={{ backgroundColor: CATEGORY_COLORS[category] }}
+                />
+                <span className="text-foreground">{CATEGORY_LABELS[category]}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       
